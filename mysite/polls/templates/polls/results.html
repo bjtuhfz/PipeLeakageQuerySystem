@@ -1,0 +1,44 @@
+<html>
+<head>
+    <meta charset="utf-8">
+
+    <!-- 2. Bootstrap 3 is mobile-first -->
+    <meta name="viewpoint" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+</head>
+
+<title>Tweet Report Details</title>
+
+<body>
+
+<div class="alert alert-warning"><a href="{% url 'polls:index' %}">Home</a></div>
+
+<strong>Published Date: {{ tweet.pub_date }}</strong>
+<h4>Tweet content: {{ tweet.tweet_text }}</h4>
+<h4>Location: {{ tweet.location }}</h4>
+<h4>Label: {{ tweet.label }}</h4>
+
+<ul class="list-group">
+{% for choice in tweet.choice_set.all %}
+    {% if forloop.counter == 1 %}
+        <li class="list-group-item list-group-item-danger">
+            <span class="badge">{{ choice.votes }}</span>{{ choice.choice_text }}
+        </li>
+    {% elif forloop.counter == 2 %}
+         <li class="list-group-item list-group-item-info">
+            <span class="badge">{{ choice.votes }}</span>{{ choice.choice_text }}
+        </li>
+    {% else %}
+         <li class="list-group-item list-group-item-success">
+            <span class="badge">{{ choice.votes }}</span>{{ choice.choice_text }}
+        </li>
+    {% endif %}
+{% endfor %}
+</ul>
+
+<a href="{% url 'polls:detail' tweet.id %}">Report again?</a>
+
+</body>
+</html>

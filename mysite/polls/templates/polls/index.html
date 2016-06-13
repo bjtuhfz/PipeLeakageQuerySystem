@@ -1,0 +1,362 @@
+<html>
+<head>
+    <meta charset="utf-8">
+
+    <!-- 2. Bootstrap 3 is mobile-first -->
+    <meta name="viewpoint" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="http://maps.googleapis.com/maps/api/js"></script>
+
+    <!--Google Map API-->
+    <script>
+        function initialize() {
+            var myCenter = null;
+            var zoom_value;
+            var location = document.getElementsByName("location")[0].value;
+            console.log(location);
+            if (location == "LA") {
+                myCenter = new google.maps.LatLng(34.0522, -118.2437);
+                zoom_value = 10;
+            } else if (location == "MC") {
+                myCenter = new google.maps.LatLng(39.1547, -77.2405);
+                zoom_value = 10;
+            } else if (location == "Austin") {
+                // 30.2672° N, 97.7431° W
+                myCenter = new google.maps.LatLng(30.2672, -97.7431);
+                zoom_value = 10;
+            } else if (location == "") {
+                myCenter = new google.maps.LatLng(37.0902, -95.7129);
+                zoom_value = 4;
+            }
+
+            var mapProp = {
+                // Coordinates of LA: 34.0522° N, 118.2437° W
+                center:new google.maps.LatLng(37.0902, -95.7129),
+                zoom:zoom_value,
+                mapTypeId:google.maps.MapTypeId.ROADMAP
+            };
+            var map=new google.maps.Map(document.getElementById("googleMap"), mapProp);
+
+
+            // Add a marker
+            {#	var myCenter=new google.maps.LatLng(34.0522,-118.2437);#}
+            var marker=new google.maps.Marker({
+                position:myCenter,
+                // animation:google.maps.Animation.BOUNCE
+            });
+
+            marker.setMap(map);
+
+            // Add an info window
+            var num = {{ data_list.tweet_list|length }};
+            var content_str = "";
+            if (location == "") {
+                content_str = num.toString() + " relevant tweets at " + "US";
+            } else {
+                content_str = num.toString() + " relevant tweets at " + location;
+            }
+            content_str = "MC (Montgomery County, MD)";
+            var infowindow = new google.maps.InfoWindow({
+                content:content_str
+            });
+            infowindow.open(map,marker);
+
+            // Zoom to 9 when clicking on marker
+            google.maps.event.addListener(marker,'click',function() {
+                map.setZoom(9);
+                map.setCenter(marker.getPosition());
+            });
+
+            google.maps.event.addListener(map,'center_changed',function() {
+                // 3 seconds after the center of the map has changed, pan back to the marker
+                window.setTimeout(function() {
+                    map.panTo(marker.getPosition());
+                },500);
+            });
+        }
+        google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+
+    <!-- Other scripts-->
+    <script type="text/javascript">
+        function getRadioValueByName(name){
+            var radios = document.getElementsByName(name);
+            for (var i = 0; i < radios.length; i++){
+                if (radios[i].checked) {
+                    return radios[i].value;
+                }
+            }
+            return null;
+        }
+
+        function showQuery(){
+            // debugger;
+            var date = document.getElementById("sel1").value;
+            // Get values from radios
+            var label = getRadioValueByName("label");
+            var count_flag = getRadioValueByName("count_flag");
+            var fetch_tweets = getRadioValueByName("fetch_tweets");
+            // debugger;
+            document.getElementById("status_msg").innerText = "Processing...";
+            var location = document.getElementById("location").value;
+            var msg = "Welcome to ";
+            msg = msg.concat(location, ", ", date, ", ", label, count_flag, fetch_tweets);
+            document.getElementById("success_msg").innerText = msg;
+            document.getElementById("status_msg").innerText = "Success!";
+        }
+
+        function clearStatus(){
+            document.getElementById("status_msg").innerText = "Input your query above";
+            //document.getElementById("success_msg").innerText = "Input your query above";
+        }
+
+        $("#test").click(function() {
+            // var msg = "tweets";
+            // document.getElementById("success_msg").innerText = msg;
+            debugger;
+            var jqXHR = $.ajax({
+                    type: "GET",
+                    url:"/myapp/templates/test_query",
+                    cache: false,
+                    data:{
+                        table_name: "mytweets"
+                    },
+                    // dataType: json,
+                    success: function(data) {
+                        var msg = data['table_name'];
+                        document.getElementById("success_msg").innerText = msg;
+                        debugger;
+                        console.log("success");
+                    },
+                    error: function(data) {
+                    console.log(data);
+                    }
+            });
+            console.log(jqXHR.status);
+            if (jqXHR.readyState != 4 || jqXHR.status != 200)
+                    console.log("Response error");
+
+            if (jqXHR.responseText != null){
+                document.getElementById("success_msg").innerText = jqXHR.responseText;
+            } else {
+                document.getElementById("status_msg").innerText = "No response!!";
+            }
+            return jqXHR.responseText;
+
+        });
+
+        function ajaxDemo(){
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (xhttp.readyState == 4 && xhttp.status == 200) {
+                    document.getElementById("status_msg").innerText = "ajaxDemoSuccess";
+                    document.getElementById("success_msg").innerText = xhttp.responseText;
+                }
+            };
+            xhttp.open("GET", "myapp/templates/query_tweet.py", true);
+            xhttp.send();
+            if (xhttp.status == 200) {
+                console.log(xhttp.responseText);
+            }
+         //   return xhttp.responseText;
+        }
+    </script>
+</head>
+
+<body>
+
+<div class="alert alert-warning"><a href="{% url 'polls:index' %}">Home</a></div>
+
+<title>Twitter Query Homepage</title>
+
+<!--Input your query here-->
+
+<div>
+	<form method="GET" action="{% url 'polls:query'%}"><!-- onsubmit="return showQuery()">-->
+        <!--
+        Date:<br>
+        <input type="date" name="time">
+        -->
+        {% csrf_token %}
+
+        <!--Published_Date-->
+        <div class="col-xs-1">
+            <label for="pub_date">Date:</label>
+            <select class="form-control" id="pub_date" name="pub_date">
+                <option value="">All</option>
+                <option value="201601">201601</option>
+                <option value="201602">201602</option>
+                <option value="201603">201603</option>
+                <option value="201604">201604</option>
+                <option value="201605">201605</option>
+                <option value="201606">201606</option>
+            </select>
+        </div>
+        <!--Location-->
+        <div class="col-xs-2">
+            <label for="location">Location:</label>
+            <input type="text" class="form-control" name="location" id="name" value="MC" onchange="">
+        </div>
+        <!--Label of Tweets-->
+        <div class="col-xs-3">
+            <label>Select type of tweets:</label>
+            <label class="radio-inline"><input type="radio" name="label" value="All" checked>All</label>
+            <label class="radio-inline"><input type="radio" name="label" value="Positive">Positive</label>
+            <label class="radio-inline"><input type="radio" name="label" value="Negative">Negative</label>
+        </div>
+
+        <!--Show Number of Tweets-->
+        <div class="col-xs-2">
+            <label>Show number of tweets:</label>
+            <label class="radio-inline"><input type="radio" name="count_flag" value="True" checked>Yes</label>
+            <label class="radio-inline"><input type="radio" name="count_flag" value="False">No</label>
+        </div>
+
+        <!--Show Content of Tweets-->
+        <div class="col-xs-2">
+            <label>Show content of tweets:</label>
+            <label class="radio-inline"><input type="radio" name="fetch_tweets" value="True">Yes</label>
+            <label class="radio-inline"><input type="radio" name="fetch_tweets" value="False" checked>No</label>
+        </div>
+        <div class="col-xs-2">
+            <input type="submit" id="submit" value="Search" class="btn btn-success"><!-- onclick="showQuery()">-->
+            <br><br>
+            <input type="reset" value="Reset" onclick="clearStatus()"  class="btn btn-warning">
+        </div>
+	</form>
+
+	<br><br><br><br>
+
+    <!--
+	<input type="button" id="test" value="testJS"><!-- onclick="ajaxDemo()"><!-- onclick="showQuery()">-->
+
+    <br>
+
+	<p id="query_result">
+        {% if info_msg %}
+            <strong>{{ info_msg }}</strong>
+        {% endif %}
+    </p>
+
+	<div class="alert alert-info" id="status_msg">
+	  <strong>Input your query above.</strong>
+	</div>
+</div>
+
+<!--Map and Result-->
+
+<div class="col-xs-5" id="googleMap" style="width:500px;height:380px;"></div>
+
+
+<!--Display Message Results-->
+
+<!--Assign value to msg_list, tweet_list-->
+
+<!--
+<div class="alert alert-success">Display most recent 20 messages by default.</div>
+
+    <h2>Message ListView</h2>
+        {% if data_list.msg_list %}
+            <div class="alert alert-warning">
+                <ul>
+                {% for msg in data_list.msg_list %}
+                    <li>{{ msg.pub_date }} {{ msg.content}}, {{ msg.status }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% else %}
+            <div class="alert alert-danger"><p>No messages are available.</p></div>
+        {% endif %}
+
+    <br>
+</div>
+-->
+
+
+
+<!--Display Query Results-->
+<div class="col-xs-7">
+    <div>
+    {% if info_message %}
+        <p><strong>{{ info_message }}</strong></p>
+    {% endif %}
+
+    {% if count_flag == 'True' %}
+        {% if data_list.tweet_list|length > 0 %}
+            <div class="alert alert-success" id="success_msg">
+                <p>{{ data_list.tweet_list|length }} entries found.</p>
+            </div>
+        {% else %}
+            <div class="alert alert-danger" id="success_msg">
+                <p>{{ data_list.tweet_list|length }} entries found.</p>
+            </div>
+        {% endif %}
+    {% endif %}
+
+
+    {#        <ul>#}
+    {#        {% for choice in tweet.choice_set.all %}#}
+    {#            <li>{{ choice.choice_text }}</li>#}
+    {#        {% endfor %}#}
+    {#        </ul>#}
+    </div>
+
+<div class="alert alert-success">Display most recent 20 tweets by default.</div>
+
+    <h2>Tweet ListView</h2>
+        {% if data_list.tweet_list %}
+            <div class="alert alert-warning">
+                <ul>
+                {% for tweet in data_list.tweet_list %}
+                    <li>{{ tweet.pub_date }} <a href="{% url 'polls:detail' tweet.id %}">{{ tweet.tweet_text }}</a></li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% else %}
+            <div class="alert alert-danger"><p>No tweets are available.</p></div>
+        {% endif %}
+
+    <br>
+</div>
+
+
+<div class="col-xs-12">
+    <h2>Tweet TableView</h2>
+    {% if data_list.tweet_list %}
+        <div class="alert alert-warning">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>tweet_id</th>
+                    <th>tweet_text</th>
+                    <th>pub_date</th>
+                    <th>location</th>
+                    <th>label</th>
+                </tr>
+            </thead>
+            <tbody>
+                    {% for tweet in data_list.tweet_list %}
+{#                        {% if tweet.location == 'MC' %}#}
+                            <tr>
+                            <td>{{ tweet.id }}</td>
+                            <td><a href="{% url 'polls:detail' tweet.id %}">{{ tweet.tweet_text }}</a></td>
+                            <td>{{ tweet.pub_date }}</td>
+                            <td>{{ tweet.location }}</td>
+                            <td>{{ tweet.label }}</td>
+                            </tr>
+{#                        {% endif %}#}
+                    {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    {% else %}
+        <div class="alert alert-danger"><p>No tweets are available.</p></div>
+    {% endif %}
+
+</div>
+
+
+</body>
+</html>
