@@ -1,6 +1,8 @@
 # LeakageQuerySystem
 # Author: Huan Chen
 
+# Demo video: https://www.youtube.com/watch?v=DmhD0gRGB8c
+
 Implements a water pipe leakage querying system.
 Location supported: Los Angeles (LA), Montgomery County(MC), United States ("", set location in the query as an empty string)
 Time range supported: 01/2016 - 06/2016
