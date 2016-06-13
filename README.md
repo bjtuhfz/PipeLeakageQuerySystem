@@ -6,6 +6,8 @@ Location supported: Los Angeles (LA), Montgomery County(MC), United States ("", 
 Time range supported: 01/2016 - 06/2016
 Tweets: historical and real-time
 
+Integrated with Wei Wang's "Message" and "User" module, supports request from both iOS app and web app.
+
 Usage:
 1. Download and install Django on your computer
 2. Make sure that you have other required Python libraries: nltk, sklearn
