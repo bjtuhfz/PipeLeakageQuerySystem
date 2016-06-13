@@ -1,4 +1,4 @@
-# pipe_leakage_query_system
+# LeakageQuerySystem
 # Author: Huan Chen
 
 Implements a water pipe leakage querying system.
